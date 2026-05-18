@@ -79,7 +79,7 @@ Gfx_CleanLeftBoundary:
     
     sll   $t9, $t9, 2
     add   $t8, $t8, $t9           # Row start address
-    lw    $t9, state_sky_color
+    li    $t9, COLOR_SKY
     li    $a3, OBST_HEIGHT        
     
 clba_loop:
@@ -104,7 +104,7 @@ Gfx_CleanPteroLeftBoundary:
     mul   $t9, $t9, $at
     sll   $t9, $t9, 2
     add   $t8, $t8, $t9
-    lw    $t9, state_sky_color
+    li    $t9, COLOR_SKY
     li    $a3, PTERO_HEIGHT
 
 clpb_loop:
@@ -155,7 +155,7 @@ ep_start_draw:
     sll   $t5, $t5, 2
     add   $t1, $t1, $t5
 
-    lw    $t8, state_sky_color
+    li    $t8, COLOR_SKY
     li    $t9, 1024
     li    $a1, PTERO_HEIGHT
 
@@ -237,7 +237,7 @@ Gfx_EraseDinoDuck:
     sub   $s0, $s0, SPRITE_WIDTH
     sll   $s0, $s0, 2
     li    $t2, SPRITE_DUCK_HEIGHT
-    lw    $t8, state_sky_color
+    li    $t8, COLOR_SKY
 
 edd_row_loop:
     sw    $t8, 0($t1)
@@ -351,7 +351,7 @@ Gfx_EraseDino:
     sub   $s0, $s0, SPRITE_WIDTH
     sll   $s0, $s0, 2
     li    $t2, SPRITE_HEIGHT
-    lw    $t8, state_sky_color
+    li    $t8, COLOR_SKY
 
 ed_row_loop:
     # Unrolled loop (24 pixels)

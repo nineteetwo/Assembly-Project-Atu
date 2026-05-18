@@ -2,8 +2,7 @@
 # PROJECT: DINO RUN (MIPS ASSEMBLY)
 # FILE: main.asm (Entry Point)
 # GitHub: https://github.com/abdelrhman1040/Assembly-Dino.git
-# UPDATES: Ducking, Flying Enemies, High Score (File I/O),
-#          Day/Night Cycle, Pause
+# UPDATES: Ducking, Flying Enemies, High Score (File I/O), Pause
 # =================================================================
 
 .data
@@ -16,8 +15,7 @@
 # -----------------------------------------------------------------
 # 2. CONSTANTS (.eqv)
 # -----------------------------------------------------------------
-.eqv COLOR_SKY          0x87CEEB    # Sky Blue (Day)
-.eqv COLOR_SKY_NIGHT    0x0D1B2A    # Dark Navy (Night)
+.eqv COLOR_SKY          0x87CEEB    # Sky Blue
 .eqv COLOR_HORIZON      0x006400    # Dark Green
 .eqv COLOR_GROUND       0x32CD32    # Light Green
 .eqv COLOR_TRANSPARENT  0x00FFFFFF  # Transparency Key (White)
@@ -59,9 +57,6 @@
 # Sun Dimensions
 .eqv SUN_WIDTH          32
 .eqv SUN_HEIGHT         31
-
-# Day/Night thresholds (score / 100)
-.eqv NIGHT_THRESHOLD    10          # score/100 >= 10 -> night mode
 
 # -----------------------------------------------------------------
 # 3. GLOBAL VARIABLES
@@ -106,7 +101,6 @@ state_obst_sprite_addr: .word sprite_obstacle
 state_game_active: .word 0         # 0=Menu, 1=Playing
 state_is_paused:   .word 0         # 0=Not paused, 1=Paused
 state_is_duck:     .word 0         # 0=Standing, 1=Ducking
-state_is_night:    .word 0         # 0=Day, 1=Night
 
 score:             .word 0
 high_score:        .word 0
@@ -129,9 +123,6 @@ sys_time_prev:     .word 0
 buf_render_addr:   .word 0
 buf_sprite_addr:   .word 0
 buf_render_width:  .word 0
-
-# Sky color variable (changes with day/night)
-state_sky_color:   .word 0x87CEEB  # starts as day
 
 # High score file buffer
 hs_buf:            .space 16       # buffer for reading/writing score string
@@ -161,7 +152,6 @@ main:
     sw    $zero, state_game_active
     sw    $zero, state_is_paused
     sw    $zero, state_is_duck
-    sw    $zero, state_is_night
     sw    $zero, state_ptero_active
 
     # 4. Initialize System Timers
@@ -239,37 +229,6 @@ Game_Loop:
     lw    $t1, cfg_speed_curr
     add   $t0, $t0, $t1
     sw    $t0, score
-
-    # Check Day/Night transition
-    lw    $t0, score
-    li    $t1, 100
-    div   $t0, $t1
-    mflo  $t0                      # t0 = score / 100
-
-    lw    $t2, state_is_night
-    li    $t3, NIGHT_THRESHOLD
-    blt   $t0, $t3, DayNight_SetDay
-
-    # --- Switch to Night ---
-    bnez  $t2, DayNight_Done       # Already night
-    li    $t2, 1
-    sw    $t2, state_is_night
-    li    $t2, COLOR_SKY_NIGHT
-    sw    $t2, state_sky_color
-    jal   Update_Sky_Color
-    j     DayNight_Done
-
-DayNight_SetDay:
-    bnez  $t2, DayNight_ToDay
-    j     DayNight_Done
-
-DayNight_ToDay:
-    sw    $zero, state_is_night
-    li    $t2, COLOR_SKY
-    sw    $t2, state_sky_color
-    jal   Update_Sky_Color
-
-DayNight_Done:
 
     # Difficulty Progression
     lw    $t0, cfg_speed_next_ts
@@ -666,31 +625,6 @@ SHS_LenDone:
     syscall
 
 SHS_Done:
-    lw    $ra, 0($sp)
-    addi  $sp, $sp, 4
-    jr    $ra
-
-# =================================================================
-# DAY/NIGHT SKY UPDATE
-# =================================================================
-Update_Sky_Color:
-    addi  $sp, $sp, -4
-    sw    $ra, 0($sp)
-
-    li    $t0, MMIO_VIDEO_BASE
-    lw    $t2, state_sky_color
-
-    # Repaint top 116 rows (sky)
-    li    $t1, SCREEN_WIDTH
-    li    $t3, 116
-    mul   $t1, $t1, $t3
-
-USC_loop:
-    sw    $t2, 0($t0)
-    addi  $t0, $t0, 4
-    subi  $t1, $t1, 1
-    bgtz  $t1, USC_loop
-
     lw    $ra, 0($sp)
     addi  $sp, $sp, 4
     jr    $ra
