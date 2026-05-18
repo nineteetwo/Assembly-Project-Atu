@@ -79,7 +79,7 @@ Gfx_CleanLeftBoundary:
     
     sll   $t9, $t9, 2
     add   $t8, $t8, $t9           # Row start address
-    li    $t9, COLOR_SKY
+    lw    $t9, state_sky_color
     li    $a3, OBST_HEIGHT        
     
 clba_loop:
@@ -94,6 +94,248 @@ clba_loop:
     jr    $ra
 
 # -----------------------------------------------------------------
+# Function: Gfx_CleanPteroLeftBoundary
+# Purpose:  Clears leftmost pixels at pterodactyl row.
+# -----------------------------------------------------------------
+Gfx_CleanPteroLeftBoundary:
+    li    $t8, MMIO_VIDEO_BASE
+    li    $t9, PTERO_Y
+    li    $at, SCREEN_WIDTH
+    mul   $t9, $t9, $at
+    sll   $t9, $t9, 2
+    add   $t8, $t8, $t9
+    lw    $t9, state_sky_color
+    li    $a3, PTERO_HEIGHT
+
+clpb_loop:
+    sw    $t9, 0($t8)
+    sw    $t9, 4($t8)
+    sw    $t9, 8($t8)
+    sw    $t9, 12($t8)
+    sw    $t9, 16($t8)
+    addi $t8, $t8, 1024
+    subi $a3, $a3, 1
+    bgtz $a3, clpb_loop
+    jr    $ra
+
+# -----------------------------------------------------------------
+# Function: Gfx_ErasePtero
+# Purpose:  Clears the pterodactyl area (fills with sky color).
+# Inputs:   $a0 = X Position
+# -----------------------------------------------------------------
+Gfx_ErasePtero:
+    lw    $t0, cfg_speed_curr
+    li    $t9, PTERO_WIDTH
+    sub   $t9, $t9, $t0
+    add   $a0, $a0, $t9
+
+    li    $t2, SCREEN_WIDTH
+    bltz $a0, ep_clip_left
+    add   $t3, $a0, $t0
+    bgt   $t3, SCREEN_WIDTH, ep_clip_right
+    move $t4, $a0
+    j     ep_start_draw
+
+ep_clip_left:
+    add   $t0, $a0, $t0
+    li    $t4, 0
+    j     ep_start_draw
+
+ep_clip_right:
+    sub   $t0, $t2, $a0
+    move $t4, $a0
+
+ep_start_draw:
+    blez $t0, ep_end
+
+    li    $t1, MMIO_VIDEO_BASE
+    li    $t5, PTERO_Y
+    mul   $t5, $t5, SCREEN_WIDTH
+    add   $t5, $t5, $t4
+    sll   $t5, $t5, 2
+    add   $t1, $t1, $t5
+
+    lw    $t8, state_sky_color
+    li    $t9, 1024
+    li    $a1, PTERO_HEIGHT
+
+ep_row_loop:
+    move $t6, $t0
+    move $t7, $t1
+
+ep_pixel_loop:
+    sw    $t8, 0($t7)
+    addi $t7, $t7, 4
+    subi $t6, $t6, 1
+    bgtz $t6, ep_pixel_loop
+
+    add   $t1, $t1, $t9
+    subi $a1, $a1, 1
+    bgtz $a1, ep_row_loop
+
+ep_end:
+    jr    $ra
+
+# -----------------------------------------------------------------
+# Function: Gfx_DrawPtero
+# Purpose:  Draws pterodactyl using pre-calculated buf_ params.
+#           Uses transparency: skips 0x00FFFFFF pixels.
+# NOTE: Uses $s1 temporarily (saved/restored via stack).
+# -----------------------------------------------------------------
+Gfx_DrawPtero:
+    addi  $sp, $sp, -4
+    sw    $s1, 0($sp)
+
+    lw    $s1, buf_render_width       # $s1 = pixel width to draw
+    blez  $s1, dp_end
+    lw    $t1, buf_render_addr        # $t1 = screen base for this row
+    lw    $t2, buf_sprite_addr        # $t2 = sprite base for this row
+    li    $t3, PTERO_HEIGHT           # $t3 = row counter
+    li    $t4, 1024                   # $t4 = screen row stride (256*4)
+    li    $t5, 128                    # $t5 = sprite row stride (32*4)
+    li    $t6, COLOR_TRANSPARENT      # $t6 = transparency key
+
+dp_row_loop:
+    move  $t7, $t1                   # $t7 = current screen ptr (copy)
+    move  $t8, $t2                   # $t8 = current sprite ptr (copy)
+    move  $t9, $s1                   # $t9 = column counter
+
+dp_col_loop:
+    lw    $t0, 0($t8)                # load sprite pixel into $t0 (NOT $at)
+    beq   $t0, $t6, dp_skip         # skip if transparent
+    sw    $t0, 0($t7)               # write pixel
+dp_skip:
+    addi  $t7, $t7, 4
+    addi  $t8, $t8, 4
+    subi  $t9, $t9, 1
+    bgtz  $t9, dp_col_loop
+
+    add   $t1, $t1, $t4             # advance screen to next row
+    add   $t2, $t2, $t5             # advance sprite to next row
+    subi  $t3, $t3, 1
+    bgtz  $t3, dp_row_loop
+
+dp_end:
+    lw    $s1, 0($sp)
+    addi  $sp, $sp, 4
+    jr    $ra
+
+# -----------------------------------------------------------------
+# Function: Gfx_EraseDinoDuck
+# Purpose:  Clears the duck dino area (shorter sprite).
+# Inputs:   $a0 = X, $a2 = Y (ignored, uses POS_DUCK_Y)
+# -----------------------------------------------------------------
+Gfx_EraseDinoDuck:
+    li    $t1, MMIO_VIDEO_BASE
+    li    $a2, POS_DUCK_Y
+    move $t5, $a2
+    mul   $t5, $t5, SCREEN_WIDTH
+    add   $t5, $t5, $a0
+    sll   $t5, $t5, 2
+    add   $t1, $t1, $t5
+    li    $s0, SCREEN_WIDTH
+    sub   $s0, $s0, SPRITE_WIDTH
+    sll   $s0, $s0, 2
+    li    $t2, SPRITE_DUCK_HEIGHT
+    lw    $t8, state_sky_color
+
+edd_row_loop:
+    sw    $t8, 0($t1)
+    sw    $t8, 4($t1)
+    sw    $t8, 8($t1)
+    sw    $t8, 12($t1)
+    sw    $t8, 16($t1)
+    sw    $t8, 20($t1)
+    sw    $t8, 24($t1)
+    sw    $t8, 28($t1)
+    sw    $t8, 32($t1)
+    sw    $t8, 36($t1)
+    sw    $t8, 40($t1)
+    sw    $t8, 44($t1)
+    sw    $t8, 48($t1)
+    sw    $t8, 52($t1)
+    sw    $t8, 56($t1)
+    sw    $t8, 60($t1)
+    sw    $t8, 64($t1)
+    sw    $t8, 68($t1)
+    sw    $t8, 72($t1)
+    sw    $t8, 76($t1)
+    sw    $t8, 80($t1)
+    sw    $t8, 84($t1)
+    sw    $t8, 88($t1)
+    sw    $t8, 92($t1)
+    addi $t1, $t1, 96
+    add   $t1, $t1, $s0
+    subi $t2, $t2, 1
+    bgtz $t2, edd_row_loop
+    jr    $ra
+
+# -----------------------------------------------------------------
+# Function: Gfx_DrawDinoDuck
+# Purpose:  Draws duck sprite (shorter, wider dino).
+# Inputs:   $a0 = X, $a2 = Y (duck Y), $a1 = Sprite Address
+# -----------------------------------------------------------------
+Gfx_DrawDinoDuck:
+    li    $t1, MMIO_VIDEO_BASE
+    move $t5, $a2
+    mul   $t5, $t5, SCREEN_WIDTH
+    add   $t5, $t5, $a0
+    sll   $t5, $t5, 2
+    add   $t1, $t1, $t5
+    li    $s0, SCREEN_WIDTH
+    sub   $s0, $s0, SPRITE_WIDTH
+    sll   $s0, $s0, 2
+    move $t0, $a1
+    li    $t2, SPRITE_DUCK_HEIGHT
+    li    $t6, COLOR_TRANSPARENT
+
+ddd_row_loop:
+    li    $t3, 3
+
+ddd_col_loop:
+    lw    $t4, 0($t0)
+    beq   $t4, $t6, ddd_skip1
+    sw    $t4, 0($t1)
+ddd_skip1:
+    lw    $t4, 4($t0)
+    beq   $t4, $t6, ddd_skip2
+    sw    $t4, 4($t1)
+ddd_skip2:
+    lw    $t4, 8($t0)
+    beq   $t4, $t6, ddd_skip3
+    sw    $t4, 8($t1)
+ddd_skip3:
+    lw    $t4, 12($t0)
+    beq   $t4, $t6, ddd_skip4
+    sw    $t4, 12($t1)
+ddd_skip4:
+    lw    $t4, 16($t0)
+    beq   $t4, $t6, ddd_skip5
+    sw    $t4, 16($t1)
+ddd_skip5:
+    lw    $t4, 20($t0)
+    beq   $t4, $t6, ddd_skip6
+    sw    $t4, 20($t1)
+ddd_skip6:
+    lw    $t4, 24($t0)
+    beq   $t4, $t6, ddd_skip7
+    sw    $t4, 24($t1)
+ddd_skip7:
+    lw    $t4, 28($t0)
+    beq   $t4, $t6, ddd_skip8
+    sw    $t4, 28($t1)
+ddd_skip8:
+    addi $t0, $t0, 32
+    addi $t1, $t1, 32
+    subi $t3, $t3, 1
+    bgtz $t3, ddd_col_loop
+
+    add   $t1, $t1, $s0
+    subi $t2, $t2, 1
+    bgtz $t2, ddd_row_loop
+    jr    $ra
+
+# -----------------------------------------------------------------
 # Function: Gfx_EraseDino
 # Purpose:  Restores background color at Dino's position.
 # Inputs:   $a0 = X Position, $a2 = Y Position
@@ -105,11 +347,11 @@ Gfx_EraseDino:
     add   $t5, $t5, $a0           
     sll   $t5, $t5, 2             
     add   $t1, $t1, $t5           
-    li    $s0, SCREEN_WIDTH                
-    sub   $s0, $s0, SPRITE_WIDTH        
-    sll   $s0, $s0, 2             
-    li    $t2, SPRITE_HEIGHT                
-    li    $t8, COLOR_SKY              
+    li    $s0, SCREEN_WIDTH
+    sub   $s0, $s0, SPRITE_WIDTH
+    sll   $s0, $s0, 2
+    li    $t2, SPRITE_HEIGHT
+    lw    $t8, state_sky_color
 
 ed_row_loop:
     # Unrolled loop (24 pixels)

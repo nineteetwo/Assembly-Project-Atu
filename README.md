@@ -14,7 +14,7 @@ A fully functional endless runner arcade game developed entirely in **MIPS Assem
 
 ![MIPS](https://img.shields.io/badge/Language-MIPS_Assembly-red)
 ![Simulator](https://img.shields.io/badge/Simulator-MARS_4.5-blue)
-![Status](https://img.shields.io/badge/Status-Complete-green)
+![Status](https://img.shields.io/badge/Status-Updated-brightgreen)
 
 ## 🎮 Game Overview
 The player controls a dinosaur running through a scrolling landscape, avoiding obstacles to survive as long as possible.
@@ -44,14 +44,25 @@ Because this game uses the **Bitmap Display**, the simulator settings must be ex
 7.  Assemble (`F3`) and Run (`F5`).
 
 ## 🕹️ Controls
-* **S**: Start the game
+* **S**: Start the game / Restart after Game Over
 * **Spacebar**: Jump
+* **X**: Duck (crouch) — dodge flying enemies!
+* **P**: Pause / Unpause the game
+
+## 🆕 New Features (v2)
+* **Ducking Mechanic:** Press `X` to crouch. Reduces hitbox height, lets you dodge pterodactyls!
+* **Flying Enemies (Pterodactyl):** A 32×16 pterodactyl spawns periodically at mid-air height. Duck under it or jump over it.
+* **High Score (File I/O):** Best score is saved to `highscore.dat` using MIPS file syscalls and persists between sessions.
+* **Day/Night Cycle:** After reaching score 1000 (score/100 ≥ 10), the sky transitions to night mode (dark navy). Resets back to day at lower scores.
+* **Pause:** Press `P` at any time to freeze the game. Press `P` again to resume.
 
 ## 🧠 Technical Details
 This project was developed as a final project for the **Computer Organization** course at Nile University. Key technical implementations include:
 * **Memory Mapping:** Direct writing to the heap base address (`0x10040000`) to manipulate pixel colors.
 * **Input Polling:** Checking the Memory Mapped IO address `0xffff0000` for keyboard interrupts.
-* **Sprite Management:** Storing pixel data for the dinosaur and obstacles in the `.data` segment.
+* **Sprite Management:** Storing pixel data for the dinosaur, obstacles and pterodactyl in the `.data` segment.
+* **File I/O:** MIPS syscalls 13/14/15/16 used to open, read, write and close `highscore.dat`.
+* **State Machine:** Extended game loop with Paused, Ducking, Night states managed via memory-mapped flags.
 
 ## 👨‍💻 Team 
 
