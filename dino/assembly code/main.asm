@@ -23,6 +23,8 @@
 
 .eqv SCREEN_WIDTH       256
 .eqv SCREEN_HEIGHT      128
+# Init_StaticBackground: 116 sky rows (Y=0..115), Y=116 horizon, Y=117..127 ground
+.eqv ROW_HORIZON        116
 .eqv SPRITE_WIDTH       24
 .eqv SPRITE_HEIGHT      25
 .eqv SPRITE_DUCK_HEIGHT 13          # Duck sprite height (shorter)

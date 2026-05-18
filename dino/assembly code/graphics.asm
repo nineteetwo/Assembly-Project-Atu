@@ -224,6 +224,7 @@ dp_end:
 # Function: Gfx_EraseDinoDuck
 # Purpose:  Clears the duck dino area (shorter sprite).
 # Inputs:   $a0 = X, $a2 = Y (ignored, uses POS_DUCK_Y)
+#           Uses sky / horizon / ground so we do not paint blue over the floor.
 # -----------------------------------------------------------------
 Gfx_EraseDinoDuck:
     li    $t1, MMIO_VIDEO_BASE
@@ -237,9 +238,20 @@ Gfx_EraseDinoDuck:
     sub   $s0, $s0, SPRITE_WIDTH
     sll   $s0, $s0, 2
     li    $t2, SPRITE_DUCK_HEIGHT
-    li    $t8, COLOR_SKY
+    move  $t7, $a2                  # current screen row Y
 
 edd_row_loop:
+    # Background color for this row (must match Init_StaticBackground)
+    blt   $t7, ROW_HORIZON, edd_use_sky
+    beq   $t7, ROW_HORIZON, edd_use_horizon
+    li    $t8, COLOR_GROUND
+    j     edd_have_color
+edd_use_sky:
+    li    $t8, COLOR_SKY
+    j     edd_have_color
+edd_use_horizon:
+    li    $t8, COLOR_HORIZON
+edd_have_color:
     sw    $t8, 0($t1)
     sw    $t8, 4($t1)
     sw    $t8, 8($t1)
@@ -266,6 +278,7 @@ edd_row_loop:
     sw    $t8, 92($t1)
     addi $t1, $t1, 96
     add   $t1, $t1, $s0
+    addi  $t7, $t7, 1
     subi $t2, $t2, 1
     bgtz $t2, edd_row_loop
     jr    $ra
@@ -339,6 +352,9 @@ ddd_skip8:
 # Function: Gfx_EraseDino
 # Purpose:  Restores background color at Dino's position.
 # Inputs:   $a0 = X Position, $a2 = Y Position
+#           When ducking, Y is POS_DUCK_Y; a full 25-row box would cover the
+#           horizon and ground — use sky / horizon / ground per row and clip
+#           to the framebuffer bottom.
 # -----------------------------------------------------------------
 Gfx_EraseDino:
     li    $t1, MMIO_VIDEO_BASE
@@ -351,9 +367,26 @@ Gfx_EraseDino:
     sub   $s0, $s0, SPRITE_WIDTH
     sll   $s0, $s0, 2
     li    $t2, SPRITE_HEIGHT
-    li    $t8, COLOR_SKY
+    move  $t7, $a2                  # current screen row Y
+    # Clip height so Y + height <= SCREEN_HEIGHT (avoid drawing past row 127)
+    add   $t3, $t7, $t2
+    li    $t4, SCREEN_HEIGHT
+    blt   $t3, $t4, ed_height_ok
+    sub   $t2, $t4, $t7
+ed_height_ok:
+    blez  $t2, ed_done
 
 ed_row_loop:
+    blt   $t7, ROW_HORIZON, ed_use_sky
+    beq   $t7, ROW_HORIZON, ed_use_horizon
+    li    $t8, COLOR_GROUND
+    j     ed_have_color
+ed_use_sky:
+    li    $t8, COLOR_SKY
+    j     ed_have_color
+ed_use_horizon:
+    li    $t8, COLOR_HORIZON
+ed_have_color:
     # Unrolled loop (24 pixels)
     sw    $t8, 0($t1)
     sw    $t8, 4($t1)
@@ -382,8 +415,10 @@ ed_row_loop:
 
     addi $t1, $t1, 96             
     add   $t1, $t1, $s0             
+    addi  $t7, $t7, 1
     subi $t2, $t2, 1
     bgtz $t2, ed_row_loop
+ed_done:
     jr    $ra
 
 # -----------------------------------------------------------------
