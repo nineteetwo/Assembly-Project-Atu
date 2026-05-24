@@ -20,7 +20,7 @@ A fully functional endless runner arcade game developed entirely in **MIPS Assem
 The player controls a dinosaur running through a scrolling landscape, avoiding obstacles to survive as long as possible.
 * **Real-time Rendering:** Graphics are drawn directly to the memory address of the Bitmap Display.
 * **Physics Engine:** Custom logic for gravity, jumping velocity, and ground collision.
-* **Collision Detection:** Pixel-perfect calculation to detect when the dino hits an obstacle.
+* **Collision Detection:** Coordinate-based Bounding Box calculation to detect when the dino hits an obstacle.
 
 ## 🛠️ Prerequisites
 To run this game, you need:
@@ -56,12 +56,12 @@ Because this game uses the **Bitmap Display**, the simulator settings must be ex
 * **Pause:** Press `P` at any time to freeze the game. Press `P` again to resume.
 
 ## 🧠 Technical Details
-This project was developed as a final project for the **Computer Organization** course at Nile University. And Forked and upgraded for the final project of the **Computer Organization** course at Adana Alparslan Turkes Science and Technology University. Key technical implementations include:
+This project was originally developed as a final project for the **Computer Organization** course at Nile University. It was later forked and upgraded for the final project of the **Computer Organization** course at Adana Alparslan Turkes Science and Technology University. Key technical implementations include:
 * **Memory Mapping:** Direct writing to the heap base address (`0x10040000`) to manipulate pixel colors.
 * **Input Polling:** Checking the Memory Mapped IO address `0xffff0000` for keyboard interrupts.
 * **Sprite Management:** Storing pixel data for the dinosaur, obstacles and pterodactyl in the `.data` segment.
 * **File I/O:** MIPS syscalls 13/14/15/16 used to open, read, write and close `highscore.dat`.
-* **State Machine:** Extended game loop with Paused, Ducking, Night states managed via memory-mapped flags.
+* **State Machine:** Extended game loop with Paused and Ducking states managed via global variables in the data segment.
 
 ## 👨‍💻 Team 
 
@@ -69,7 +69,7 @@ This project was developed as a final project for the **Computer Organization** 
 * **Amr Gaith**
 * **Amro Mostafa**
 * **Yara Alhussany**
-* **Mohamed Medhat
+* **Mohamed Medhat**
 
 ## New Additions
-* **nineteetwo**
+* **Faruk Işın (nineteetwo)**
