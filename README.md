@@ -70,4 +70,7 @@ This project was developed as a final project for the **Computer Organization** 
 * **Amr Gaith**
 * **Amro Mostafa**
 * **Yara Alhussany**
-* **Mohamed Medhat**
+* **Mohamed Medhat
+
+## New Additions
+* **nineteetwo**
