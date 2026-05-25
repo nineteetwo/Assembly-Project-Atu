@@ -56,7 +56,7 @@ Because this game uses the **Bitmap Display**, the simulator settings must be ex
 * **Pause:** Press `P` at any time to freeze the game. Press `P` again to resume.
 
 ## 🧠 Technical Details
-This project was developed as a final project for the **Computer Organization** course at Nile University. And Forked and upgraded for the final project of the **Computer Organization** course at Adana Alparslan Turkes Science University. Key technical implementations include:
+This project was developed as a final project for the **Computer Organization** course at Nile University. And Forked and upgraded for the final project of the **Computer Organization** course at Adana Alparslan Turkes Science and Technology University. Key technical implementations include:
 * **Memory Mapping:** Direct writing to the heap base address (`0x10040000`) to manipulate pixel colors.
 * **Input Polling:** Checking the Memory Mapped IO address `0xffff0000` for keyboard interrupts.
 * **Sprite Management:** Storing pixel data for the dinosaur, obstacles and pterodactyl in the `.data` segment.
