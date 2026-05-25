@@ -25,7 +25,7 @@ The player controls a dinosaur running through a scrolling landscape, avoiding o
 ## 🛠️ Prerequisites
 To run this game, you need:
 1.  **Java Runtime Environment (JRE)** installed on your machine.
-2.  **MARS (MIPS Assembler and Runtime Simulator)**. You can download it [here](http://courses.missouristate.edu/KenVollmar/MARS/).
+2.  **MARS (MIPS Assembler and Runtime Simulator)**.
 
 ## ⚙️ Configuration & How to Run
 Because this game uses the **Bitmap Display**, the simulator settings must be exact for the graphics to render correctly.
