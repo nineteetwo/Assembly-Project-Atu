@@ -53,7 +53,6 @@ Because this game uses the **Bitmap Display**, the simulator settings must be ex
 * **Ducking Mechanic:** Press `X` to crouch. Reduces hitbox height, lets you dodge pterodactyls!
 * **Flying Enemies (Pterodactyl):** A 32×16 pterodactyl spawns periodically at mid-air height. Duck under it or jump over it.
 * **High Score (File I/O):** Best score is saved to `highscore.dat` using MIPS file syscalls and persists between sessions.
-* **Day/Night Cycle:** After reaching score 1000 (score/100 ≥ 10), the sky transitions to night mode (dark navy). Resets back to day at lower scores.
 * **Pause:** Press `P` at any time to freeze the game. Press `P` again to resume.
 
 ## 🧠 Technical Details
